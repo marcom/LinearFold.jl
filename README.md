@@ -24,43 +24,43 @@ further details.
 using LinearFold, Unitful
 ```
 
-### `mfe`: minimum free energy of an RNA strand
+### Minimum free energy structure of an RNA strand
 
 ```julia
 mfe("GGGAAACCC")
 ```
 
-### `bpp`: base pair probabilities
+### Base pair probabilities
 
 ```julia
 bpp("GGGAAACCC")
 ```
 
-### `threshknot`: structure prediction with pseudoknots
+### Pseudoknot structure prediction
 
 ```julia
 threshknot("GGGAAACCC")
 ```
 
-### `mea`: maximum expected accuracy structure
+### Maximum expected accuracy structure
 
 ```julia
 mea("GGGAAACCC")
 ```
 
-### `zuker_subopt`: Zuker suboptimal structures
+### Zuker suboptimal structures
 
 ```julia
 zuker_subopt("GGGAAACCC"; delta=10u"kcal/mol")
 ```
 
-### `energy` of a (sequence, structure) pair
+### Energy of a (sequence, structure) pair
 
 ```julia
 energy("GGGAAACCC", "(((...)))")
 ```
 
-### `partfn`: calculate only partition function, no base pair probabilities
+### Partition function only, no base pair probabilities
 
 ```julia
 partfn("GGGAAACCC")
