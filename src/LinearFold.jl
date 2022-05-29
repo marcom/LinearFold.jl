@@ -4,20 +4,6 @@ export bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
 
 using Unitful
 
-# TODO
-# - is_sharpturn
-#   means allow hairpin lengths < 3
-#   - doesn't seem to work for energy (eval mode)?
-#     energy("GGGACCC", "(((.)))") == energy("GGGACCC", "(((.)))"; is_sharpturn=true)
-#
-# LinearPartition
-# - is it possible to run mea with threshknot together?
-# - forest_file output?
-#
-# tests
-# - test kwarg options:
-#   model, verbose, beamsize, is_sharpturn
-
 module Private
 
 using Unitful
@@ -159,6 +145,7 @@ end
 
 end # module Private
 
+
 import .Private: cmd_linearfold, cmd_linearpartition,
     check_constraints, run_cmd, parseline_structure_energy,
     parseline_energy, parse_bpseq_format
@@ -276,7 +263,6 @@ function bpp(seq::AbstractString;
     end
     close(io_bpp)
     Base.Filesystem.rm(bpp_file)
-
     return dG_ensemble, bpp
 end
 
