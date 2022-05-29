@@ -150,10 +150,26 @@ import .Private: cmd_linearfold, cmd_linearpartition,
     check_constraints, run_cmd, parseline_structure_energy,
     parseline_energy, parse_bpseq_format
 
+"""
+    energy(seq, structure; model, is_sharpturn, verbose)
+
+Calculate the free energy of folding for a given RNA sequence `seq`
+and secondary structure `structure` given in dot-bracket notation.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+
+"""
 function energy(seq::AbstractString, structure::AbstractString;
                 model::Symbol=:vienna,
-                verbose::Bool=false,
-                is_sharpturn::Bool=false)
+                is_sharpturn::Bool=false,
+                verbose::Bool=false)
     is_eval = true
     cmd = cmd_linearfold(; model, verbose, is_sharpturn, is_eval)
     out, err = run_cmd(cmd, "$seq\n$structure"; nlines=2, verbose)
@@ -162,12 +178,36 @@ function energy(seq::AbstractString, structure::AbstractString;
     return en
 end
 
+"""
+    mfe(seq; model, beamsize, constraints, is_sharpturn, verbose)
+
+Calculate the minimum free energy structure for a given RNA sequence
+`seq`.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `constraints`: structural constraints of the predicted structure.  A
+  string consisting of the characters '?', '.', '(', ')',
+  corresponding to positions that have unspecified base pairing,
+  unpaired, or base-pairing specified by matching parentheses
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function mfe(seq::AbstractString;
              model::Symbol=:vienna,
-             verbose::Bool=false,
              beamsize::Int=100,
+             constraints::AbstractString="",
              is_sharpturn::Bool=false,
-             constraints::AbstractString="")
+             verbose::Bool=false)
     if constraints != ""
         is_constraints = true
         input = "$seq\n$constraints"
@@ -186,13 +226,40 @@ function mfe(seq::AbstractString;
     return en, structure
 end
 
+"""
+    zuker_subopt(seq; model, beamsize, constraints, delta, is_sharpturn, verbose)
+
+Calculate suboptimal structures for an RNA sequence `seq` with the
+Zuker algorithm.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `constraints`: structural constraints of the predicted structure.  A
+  string consisting of the characters '?', '.', '(', ')',
+  corresponding to positions that have unspecified base pairing,
+  unpaired, or base-pairing specified by matching parentheses
+
+- `delta`: generate suboptimals up to `delta` over the minimum free
+  energy, default is `5u"kcal/mol"`
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function zuker_subopt(seq::AbstractString;
                       model::Symbol=:vienna,
-                      verbose::Bool=false,
                       beamsize::Int=100,
-                      is_sharpturn::Bool=false,
                       constraints::AbstractString="",
-                      delta::Quantity=5.0u"kcal/mol")
+                      delta::Quantity=5.0u"kcal/mol",
+                      is_sharpturn::Bool=false,
+                      verbose::Bool=false)
     if constraints != ""
         is_constraints = true
         input = "$seq\n$constraints"
@@ -223,11 +290,30 @@ function zuker_subopt(seq::AbstractString;
     return subopts
 end
 
+"""
+    partfn(seq; model, beamsize, is_sharpturn, verbose)
+
+Calculate partition function of an RNA sequence `seq` without
+calculating base pair probabilities.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function partfn(seq::AbstractString;
                 model::Symbol=:vienna,
-                verbose::Bool=false,
                 beamsize::Int=100,
-                is_sharpturn::Bool=false)
+                is_sharpturn::Bool=false,
+                verbose::Bool=false)
     cmd = cmd_linearpartition(; model, beamsize, is_sharpturn,
                               verbose, pf_only=true)
     out, err = run_cmd(cmd, seq; verbose)
@@ -236,12 +322,35 @@ function partfn(seq::AbstractString;
 end
 
 
+"""
+    bpp(seq; model, beamsize, bpp_cutoff, is_sharpturn, verbose)
+
+Calculate base pair probabilities and partition function of an RNA
+sequence `seq`.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `bpp_cutoff`: ignore base pair probabilities smaller than
+  `bpp_cutoff`.  This is helpful for large sequences to reduce the
+  amount of data generated.  Default is `0.0`.
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function bpp(seq::AbstractString;
              model::Symbol=:vienna,
-             verbose::Bool=false,
              beamsize::Int=100,
+             bpp_cutoff::Float64=0.0,
              is_sharpturn::Bool=false,
-             bpp_cutoff::Float64=0.0)
+             verbose::Bool=false)
     bpp_file, io_bpp = mktemp(cleanup=false)
     cmd = cmd_linearpartition(; model, beamsize, is_sharpturn,
                               verbose, bpp_file, bpp_cutoff)
@@ -266,12 +375,33 @@ function bpp(seq::AbstractString;
     return dG_ensemble, bpp
 end
 
+"""
+    mea(seq; model, beamsize, gamma, is_sharpturn, verbose)
+
+Calculate maximum expected accuracy structure of an RNA sequence
+`seq`.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `gamma`: gamma parameter in MEA calculation
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function mea(seq::AbstractString;
              model::Symbol=:vienna,
-             verbose::Bool=false,
              beamsize::Int=100,
+             gamma::Float64=3.0,
              is_sharpturn::Bool=false,
-             gamma::Float64=3.0)
+             verbose::Bool=false)
     cmd = cmd_linearpartition(; model, verbose, beamsize,
                               is_sharpturn, mea=true, gamma)
     out, err = run_cmd(cmd, seq; verbose)
@@ -280,12 +410,34 @@ function mea(seq::AbstractString;
     return dG_ensemble, structure
 end
 
+"""
+    threshknot(seq; model, beamsize, threshold, is_sharpturn, verbose)
+
+Predict pseudoknotted secondary structures of an RNA sequence
+`seq` with the ThreshKnot algorithm.
+
+Keyword arguments:
+
+- `model` determines the energy model used, can be either `:vienna` or
+  `:contrafold`, default is `:vienna`
+
+- `beamsize`: size used for beam search approximation, larger numbers
+  trade longer computation time for more precise answers (default is
+  100)
+
+- `threshold`: threshold parameter in ThreshKnot algorithm, default is
+  `0.3`
+
+- `is_sharpturn`: enable sharp turn in prediction
+
+- `verbose`: output extra information from the program run to stdout
+"""
 function threshknot(seq::AbstractString;
                     model::Symbol=:vienna,
-                    verbose::Bool=false,
                     beamsize::Int=100,
+                    threshold::Float64=0.3,
                     is_sharpturn::Bool=false,
-                    threshold::Float64=0.3)
+                    verbose::Bool=false)
     cmd = cmd_linearpartition(; model, verbose, beamsize,
                               is_sharpturn, threshknot=true, threshold)
     out, err = run_cmd(cmd, seq; verbose)
