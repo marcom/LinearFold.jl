@@ -1,5 +1,7 @@
 module LinearFold
 
+export bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
+
 using Unitful
 
 # TODO
