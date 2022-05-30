@@ -29,9 +29,12 @@ end
 
 @testset "bpp" begin
     seq = "GGGAAACCC"
+    n = length(seq)
     dG, p = bpp(seq)
     @test dG isa Unitful.Quantity
-    @test p isa Dict{Tuple{Int,Int},Float64}
+    @test eltype(p) <: AbstractFloat
+    @test axes(p) == (1:n, 1:n)
+    @test all(x -> 0.0 <= x <= 1.0, p)
 end
 
 @testset "mea" begin

@@ -6,4 +6,5 @@ version = "0.1.0"
 [deps]
 LinearFold_jll = "492392ba-fc20-5d72-afbd-f61f3c69e3d5"
 LinearPartition_jll = "e9cb6f04-5a86-57c9-b8cc-25aa5bdf9fd6"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"

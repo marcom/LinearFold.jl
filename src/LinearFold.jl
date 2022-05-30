@@ -1,8 +1,9 @@
 module LinearFold
 
 export bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
+using Unitful: Unitful, @u_str, Quantity
+using SparseArrays: spzeros
 
-using Unitful
 
 module Private
 
@@ -357,7 +358,8 @@ function bpp(seq::AbstractString;
     out, err = run_cmd(cmd, seq; verbose)
     dG_ensemble = parseline_energy(err)
     # read bpp_file
-    bpp = Dict{Tuple{Int,Int}, Float64}()
+    n = length(seq)
+    bpp = spzeros(n,n)
     for line in eachline(io_bpp)
         length(line) == 0 && continue
         a = split(line, ' ')
@@ -365,7 +367,7 @@ function bpp(seq::AbstractString;
             i = parse(Int, a[1])
             j = parse(Int, a[2])
             pij = parse(Float64, a[3])
-            bpp[(i,j)] = pij
+            bpp[i,j] = pij
         else
             error("strange line '$line' in bpp_file $bpp_file")
         end
