@@ -18,6 +18,14 @@ algorithms to work on the sequence left-to-right and to use a beam
 search approximation.  Please refer to the LinearFold publications for
 further details.
 
+## Installation
+
+This package is not yet registered, so you have to install it with:
+
+```
+] add https://github.com/marcom/LinearFold.jl
+```
+
 ## Usage
 
 ```julia
