@@ -11,6 +11,36 @@ using Unitful
 import LinearFold_jll
 import LinearPartition_jll
 
+const docstr_kwarg_model =
+    """
+    - `model`: determines the energy model used, can be either
+      `:vienna` or `:contrafold`. Default is `:vienna`.
+    """
+const docstr_kwarg_is_sharpturn =
+    """
+    - `is_sharpturn`: enable sharp turns in prediction. Default is
+      `false`.
+    """
+const docstr_kwarg_verbose =
+    """
+    - `verbose`: output extra information from the program run to
+      stdout. Default is `false`.
+    """
+const docstr_kwarg_beamsize =
+    """
+    - `beamsize`: size used for beam search approximation, larger
+      numbers trade longer computation time for more precise
+      answers. Default is `100`.
+    """
+const docstr_kwarg_constraints =
+    """
+    - `constraints`: structural constraints of the predicted
+      structure.  A string consisting of the characters '?', '.', '(',
+      ')', corresponding to positions that have unspecified base
+      pairing, unpaired, or base-pairing specified by matching
+      parentheses.
+    """
+
 function cmd_linearfold(; model::Symbol=:vienna,
                         verbose::Bool=false,
                         beamsize::Int=100,
@@ -148,8 +178,10 @@ end # module Private
 
 
 import .Private: cmd_linearfold, cmd_linearpartition,
-    check_constraints, run_cmd, parseline_structure_energy,
-    parseline_energy, parse_bpseq_format
+    check_constraints, docstr_kwarg_beamsize,
+    docstr_kwarg_constraints, docstr_kwarg_is_sharpturn,
+    docstr_kwarg_model, docstr_kwarg_verbose, run_cmd,
+    parseline_structure_energy, parseline_energy, parse_bpseq_format
 
 """
     energy(seq, structure; model, is_sharpturn, verbose)
@@ -159,13 +191,9 @@ and secondary structure `structure` given in dot-bracket notation.
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
-
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
-
+$docstr_kwarg_model
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function energy(seq::AbstractString, structure::AbstractString;
                 model::Symbol=:vienna,
@@ -187,21 +215,11 @@ Calculate the minimum free energy structure for a given RNA sequence
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
-
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
-
-- `constraints`: structural constraints of the predicted structure.  A
-  string consisting of the characters '?', '.', '(', ')',
-  corresponding to positions that have unspecified base pairing,
-  unpaired, or base-pairing specified by matching parentheses
-
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
+$docstr_kwarg_constraints
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function mfe(seq::AbstractString;
              model::Symbol=:vienna,
@@ -235,24 +253,15 @@ Zuker algorithm.
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
-
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
-
-- `constraints`: structural constraints of the predicted structure.  A
-  string consisting of the characters '?', '.', '(', ')',
-  corresponding to positions that have unspecified base pairing,
-  unpaired, or base-pairing specified by matching parentheses
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
+$docstr_kwarg_constraints
 
 - `delta`: generate suboptimals up to `delta` over the minimum free
-  energy, default is `5u"kcal/mol"`
+  energy. Default is `5u"kcal/mol"`.
 
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function zuker_subopt(seq::AbstractString;
                       model::Symbol=:vienna,
@@ -299,16 +308,10 @@ calculating base pair probabilities.
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
-
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
-
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function partfn(seq::AbstractString;
                 model::Symbol=:vienna,
@@ -331,20 +334,15 @@ sequence `seq`.
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
-
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
 
 - `bpp_cutoff`: ignore base pair probabilities smaller than
   `bpp_cutoff`.  This is helpful for large sequences to reduce the
   amount of data generated.  Default is `0.0`.
 
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function bpp(seq::AbstractString;
              model::Symbol=:vienna,
@@ -385,18 +383,13 @@ Calculate maximum expected accuracy structure of an RNA sequence
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
 
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
+- `gamma`: gamma parameter in MEA calculation. Default is `3.0`.
 
-- `gamma`: gamma parameter in MEA calculation
-
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function mea(seq::AbstractString;
              model::Symbol=:vienna,
@@ -420,19 +413,14 @@ Predict pseudoknotted secondary structures of an RNA sequence
 
 Keyword arguments:
 
-- `model` determines the energy model used, can be either `:vienna` or
-  `:contrafold`, default is `:vienna`
+$docstr_kwarg_model
+$docstr_kwarg_beamsize
 
-- `beamsize`: size used for beam search approximation, larger numbers
-  trade longer computation time for more precise answers (default is
-  100)
+- `threshold`: threshold parameter in ThreshKnot algorithm. Default is
+  `0.3`.
 
-- `threshold`: threshold parameter in ThreshKnot algorithm, default is
-  `0.3`
-
-- `is_sharpturn`: enable sharp turn in prediction
-
-- `verbose`: output extra information from the program run to stdout
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
 """
 function threshknot(seq::AbstractString;
                     model::Symbol=:vienna,
