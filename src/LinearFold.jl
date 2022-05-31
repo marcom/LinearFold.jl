@@ -67,7 +67,7 @@ function check_constraints(seq, constraints)
         if length(constraints) != length(seq)
             throw(ArgumentError("constraints and seq must have same size"))
         end
-        if Set(collect(constraints)) != Set(['?', '.', '(', ')'])
+        if any(c -> (c != '.' && c != '?' && c != '(' && c != ')'), constraints)
             throw(ArgumentError("constraints can only contain the following characters: '?', '.', '(', ')'"))
         end
     end
