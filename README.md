@@ -92,7 +92,7 @@ mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ### Zuker suboptimal structures
 
 ```julia
-# zuker_subopt(seq; model, beamsize, constraints, delta, is_sharpturn, verbose)
+# zuker_subopt(seq; model, beamsize, delta, is_sharpturn, verbose)
 zuker_subopt("GCGCGAAAAAACCCCCCC")  # => [ (2.9 kcal mol^-1, "....(........)...."), ... ]
 zuker_subopt("GCGCGAAAAAACCCCCCC"; delta=4.0u"kcal/mol")
 ```

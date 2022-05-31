@@ -255,7 +255,7 @@ function mfe(seq::AbstractString;
 end
 
 """
-    zuker_subopt(seq; model, beamsize, constraints, delta, is_sharpturn, verbose)
+    zuker_subopt(seq; model, beamsize, delta, is_sharpturn, verbose)
 
 Calculate suboptimal structures for an RNA sequence `seq` with the
 Zuker algorithm.
@@ -264,7 +264,6 @@ Keyword arguments:
 
 $docstr_kwarg_model
 $docstr_kwarg_beamsize
-$docstr_kwarg_constraints
 
 - `delta`: generate suboptimals up to `delta` over the minimum free
   energy. Default is `5u"kcal/mol"`.
@@ -275,23 +274,12 @@ $docstr_kwarg_verbose
 function zuker_subopt(seq::AbstractString;
                       model::Symbol=:vienna,
                       beamsize::Int=100,
-                      constraints::AbstractString="",
                       delta::Quantity=5.0u"kcal/mol",
                       is_sharpturn::Bool=false,
                       verbose::Bool=false)
-    if constraints != ""
-        is_constraints = true
-        input = "$seq\n$constraints"
-        nlines = 2
-        check_constraints(seq, constraints)
-    else
-        is_constraints = false
-        input = seq
-        nlines = 1
-    end
     cmd = cmd_linearfold(; model, beamsize, is_sharpturn, verbose,
-			 is_constraints, zuker_subopt=true, delta)
-    out, err = run_cmd(cmd, input; nlines, verbose)
+			 zuker_subopt=true, delta)
+    out, err = run_cmd(cmd, seq; verbose)
     # parse suboptimal structures
     subopts = Tuple{typeof(1.0u"kcal/mol"), String}[]
     in_subopt = false
