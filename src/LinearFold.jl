@@ -4,6 +4,11 @@ export bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
 using Unitful: Unitful, @u_str, Quantity
 using SparseArrays: spzeros
 
+# Notes
+# - there is no option to set constraints on bpp, mea, partfn,
+#   threshknot because the linearpartition program doesn't have a
+#   constraints option
+
 
 module Private
 
