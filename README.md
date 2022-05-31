@@ -32,7 +32,7 @@ This package is not yet registered, so you have to install it with:
 using LinearFold, Unitful
 ```
 
-### Common keyword arguments for all functions
+### Keyword argument description
 
 - `model=:vienna`: energy model to be used. Valid options are
   `:vienna` and `:contrafold`. Default is `:vienna`.
@@ -40,6 +40,11 @@ using LinearFold, Unitful
 - `beamsize=100`: size used for beam search approximation. Larger
   numbers trade longer computation time for more precise
   answers. Default is `100`.
+
+- `constraints`: structural constraints of the predicted structure.  A
+   string consisting of the characters '?', '.', '(', ')',
+   corresponding to positions that have unspecified base pairing,
+   unpaired, or base-pairing specified by matching parentheses.
 
 - `is_sharpturn=false`: enable sharp turns in predictions. Default is
   `false`.
@@ -50,41 +55,51 @@ using LinearFold, Unitful
 ### Minimum free energy structure of an RNA strand
 
 ```julia
-mfe("GGGAAACCC")
+# mfe(seq; model, beamsize, constraints, is_sharpturn, verbose)
+mfe("GGGAAACCC")  # => (-1.2 kcal mol^-1, "(((...)))")
+mfe("GGGAAACCC"; constraints="?(.????)?") # => (0.9 kcal mol^-1, "((.....))")
 ```
 
 ### Base pair probabilities
 
 ```julia
-bpp("GGGAAACCC")
+bpp("GGGAAACCC") # => (-1.62 kcal mol^-1, sparse(...))
+bpp("GGGAAACCC"; bpp_cutoff=0.1)
 ```
 
 ### Pseudoknot structure prediction
 
+Because the predicted structures can contain pseudoknots, the
+structure is returned as a list of integers which indicate the
+base-pairing partner of the current index.
+
 ```julia
-threshknot("GGGAAACCC")
+threshknot("GGGAAACCC")  # => (-1.62 kcal mol^-1, [9, 8, 7, 0, 0, 0, 3, 2, 1])
+threshknot("GGGAAACCC"; threshold=0.2)
 ```
 
 ### Maximum expected accuracy structure
 
 ```julia
-mea("GGGAAACCC")
+mea("GGGAAACCC")  # => (-1.62 kcal mol^-1, "(((...)))")
+mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ```
 
 ### Zuker suboptimal structures
 
 ```julia
-zuker_subopt("GGGAAACCC"; delta=10u"kcal/mol")
+zuker_subopt("GCGCGAAAAAACCCCCCC")  # => [ (2.9 kcal mol^-1, "....(........)...."), ... ]
+zuker_subopt("GCGCGAAAAAACCCCCCC"; delta=4.0u"kcal/mol")
 ```
 
 ### Energy of a (sequence, structure) pair
 
 ```julia
-energy("GGGAAACCC", "(((...)))")
+energy("GGGAAACCC", "(((...)))")  # => -1.2 kcal mol^-1
 ```
 
 ### Partition function only, no base pair probabilities
 
 ```julia
-partfn("GGGAAACCC")
+partfn("GGGAAACCC")  # => -1.62 kcal mol^-1
 ```
