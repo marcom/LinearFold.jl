@@ -32,6 +32,21 @@ This package is not yet registered, so you have to install it with:
 using LinearFold, Unitful
 ```
 
+### Common keyword arguments for all functions
+
+- `model=:vienna`: energy model to be used. Valid options are
+  `:vienna` and `:contrafold`. Default is `:vienna`.
+
+- `beamsize=100`: size used for beam search approximation. Larger
+  numbers trade longer computation time for more precise
+  answers. Default is `100`.
+
+- `is_sharpturn=false`: enable sharp turns in predictions. Default is
+  `false`.
+
+- `verbose=false`: output extra information from the program runs to
+  stdout. Default is `false`.
+
 ### Minimum free energy structure of an RNA strand
 
 ```julia
