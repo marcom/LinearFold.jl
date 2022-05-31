@@ -129,8 +129,12 @@ function parseline_structure_energy(line)
     return String(structure), en
 end
 
-function parseline_energy(line)
-    dG = parse(Float64, split(line, ':')[2] |> s -> split(s, ' ')[2]) * u"kcal/mol"
+function parse_energy(str)
+    s = split(str, ':')[2]
+    s = split(s, '\n')[1]
+    s = lstrip(s)
+    s = split(s, ' ')[1]
+    dG = parse(Float64, s) * u"kcal/mol"
     return dG
 end
 
@@ -186,7 +190,7 @@ import .Private: cmd_linearfold, cmd_linearpartition,
     check_constraints, docstr_kwarg_beamsize,
     docstr_kwarg_constraints, docstr_kwarg_is_sharpturn,
     docstr_kwarg_model, docstr_kwarg_verbose, run_cmd,
-    parseline_structure_energy, parseline_energy, parse_bpseq_format
+    parseline_structure_energy, parse_energy, parse_bpseq_format
 
 """
     energy(seq, structure; model, is_sharpturn, verbose)
@@ -326,7 +330,7 @@ function partfn(seq::AbstractString;
     cmd = cmd_linearpartition(; model, beamsize, is_sharpturn,
                               verbose, pf_only=true)
     out, err = run_cmd(cmd, seq; verbose)
-    dG_ensemble = parseline_energy(err)
+    dG_ensemble = parse_energy(err)
     return dG_ensemble
 end
 
@@ -359,7 +363,7 @@ function bpp(seq::AbstractString;
     cmd = cmd_linearpartition(; model, beamsize, is_sharpturn,
                               verbose, bpp_file, bpp_cutoff)
     out, err = run_cmd(cmd, seq; verbose)
-    dG_ensemble = parseline_energy(err)
+    dG_ensemble = parse_energy(err)
     # read bpp_file
     n = length(seq)
     bpp = spzeros(n,n)
@@ -406,7 +410,7 @@ function mea(seq::AbstractString;
                               is_sharpturn, mea=true, gamma)
     out, err = run_cmd(cmd, seq; verbose)
     structure = String(split(out, '\n')[2])
-    dG_ensemble = parseline_energy(err)
+    dG_ensemble = parse_energy(err)
     return dG_ensemble, structure
 end
 
@@ -441,7 +445,7 @@ function threshknot(seq::AbstractString;
         out = join(split(out, '\n')[2:end], '\n')
     end
     _, pt = parse_bpseq_format(out)
-    dG_ensemble = parseline_energy(err)
+    dG_ensemble = parse_energy(err)
     return dG_ensemble, pt
 end
 
