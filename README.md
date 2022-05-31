@@ -58,11 +58,13 @@ using LinearFold, Unitful
 # mfe(seq; model, beamsize, constraints, is_sharpturn, verbose)
 mfe("GGGAAACCC")  # => (-1.2 kcal mol^-1, "(((...)))")
 mfe("GGGAAACCC"; constraints="?(.????)?") # => (0.9 kcal mol^-1, "((.....))")
+mfe("GGGAAACCC"; model=:contrafold)  # => (-0.09 kcal mol^-1, ".........")
 ```
 
 ### Base pair probabilities
 
 ```julia
+# bpp(seq; model, beamsize, bpp_cutoff, is_sharpturn, verbose)
 bpp("GGGAAACCC") # => (-1.62 kcal mol^-1, sparse(...))
 bpp("GGGAAACCC"; bpp_cutoff=0.1)
 ```
@@ -74,6 +76,7 @@ structure is returned as a list of integers which indicate the
 base-pairing partner of the current index.
 
 ```julia
+# threshknot(seq; model, beamsize, threshold, is_sharpturn, verbose)
 threshknot("GGGAAACCC")  # => (-1.62 kcal mol^-1, [9, 8, 7, 0, 0, 0, 3, 2, 1])
 threshknot("GGGAAACCC"; threshold=0.2)
 ```
@@ -81,6 +84,7 @@ threshknot("GGGAAACCC"; threshold=0.2)
 ### Maximum expected accuracy structure
 
 ```julia
+# mea(seq; model, beamsize, gamma, is_sharpturn, verbose)
 mea("GGGAAACCC")  # => (-1.62 kcal mol^-1, "(((...)))")
 mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ```
@@ -88,6 +92,7 @@ mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ### Zuker suboptimal structures
 
 ```julia
+# zuker_subopt(seq; model, beamsize, constraints, delta, is_sharpturn, verbose)
 zuker_subopt("GCGCGAAAAAACCCCCCC")  # => [ (2.9 kcal mol^-1, "....(........)...."), ... ]
 zuker_subopt("GCGCGAAAAAACCCCCCC"; delta=4.0u"kcal/mol")
 ```
@@ -95,11 +100,13 @@ zuker_subopt("GCGCGAAAAAACCCCCCC"; delta=4.0u"kcal/mol")
 ### Energy of a (sequence, structure) pair
 
 ```julia
+# energy(seq, structure; model, is_sharpturn, verbose)
 energy("GGGAAACCC", "(((...)))")  # => -1.2 kcal mol^-1
 ```
 
 ### Partition function only, no base pair probabilities
 
 ```julia
+# partfn(seq; model, beamsize, is_sharpturn, verbose)
 partfn("GGGAAACCC")  # => -1.62 kcal mol^-1
 ```
