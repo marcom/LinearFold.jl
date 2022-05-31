@@ -82,7 +82,6 @@ end
 @testset "partfn" begin
     seq = "GGGAAACCC"
     for kwargs in gen_kwargs()
-        @show kwargs
         dG = partfn(seq; kwargs...)
         @test dG isa Unitful.Quantity
     end
