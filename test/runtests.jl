@@ -1,6 +1,7 @@
 using Test
 using LinearFold: Unitful, @u_str
-using LinearFold: bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
+using LinearFold: bpp, energy, mea, mfe, partfn, sample_structures,
+    threshknot, zuker_subopt
 
 function gen_kwargs(; use_beamsize=true)
     function make_nt(model, is_sharpturn, verbose)
@@ -146,6 +147,35 @@ end
             @test dG isa Unitful.Quantity
             @test length(pt) == length(seq)
             @test eltype(pt) == Int
+        end
+    end
+end
+
+@testset "sample_structures" begin
+    seq = "GGGAAACC"
+    nsamples = 20
+
+    for opts in Iterators.product(
+        [nothing, 50],
+        [nothing, true, false],
+        [nothing, true, false],
+        [nothing, true, false])
+        optnames = [:beamsize, :is_nonsaving, :is_sharpturn, :verbose]
+        kwargs = NamedTuple()
+        for (i, name) in enumerate(optnames)
+            val = opts[i]
+            if !isnothing(val)
+                kwargs = NamedTuple((pairs(kwargs)..., name => val))
+            end
+        end
+        redirect_stdio(stdout=devnull) do
+            samples = sample_structures(seq; kwargs...)
+            @test length(samples) == 10
+            @test all(s -> length(s) == length(seq), samples)
+
+            samples = sample_structures(seq; num_samples=nsamples, kwargs...)
+            @test length(samples) == nsamples
+            @test all(s -> length(s) == length(seq), samples)
         end
     end
 end

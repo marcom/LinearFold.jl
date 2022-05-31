@@ -1,6 +1,6 @@
 module LinearFold
 
-export bpp, energy, mea, mfe, partfn, threshknot, zuker_subopt
+export bpp, energy, mea, mfe, partfn, sample_structures, threshknot, zuker_subopt
 using Unitful: Unitful, @u_str, Quantity
 using SparseArrays: spzeros
 
@@ -15,6 +15,7 @@ module Private
 using Unitful
 import LinearFold_jll
 import LinearPartition_jll
+import LinearSampling_jll
 
 const docstr_kwarg_model =
     """
@@ -107,6 +108,31 @@ function cmd_linearpartition(; model::Symbol=:vienna,
     return cmd
 end
 
+function cmd_linearsampling(; beamsize::Int=100,
+                            sample_number::Int=10,
+                            is_nonsaving::Bool=false,
+                            is_sharpturn::Bool=false,
+                            verbose::Bool=false,
+                            read_forest::AbstractString="")
+    is_fasta = false
+    if beamsize <= 0 && read_forest == ""
+        if is_nonsaving
+            bin = LinearSampling_jll.exact_linearsampling_nonsaving()
+        else
+            bin = LinearSampling_jll.exact_linearsampling_lazysaving()
+        end
+    else
+        if is_nonsaving
+            bin = LinearSampling_jll.linearsampling_nonsaving()
+        else
+            bin = LinearSampling_jll.linearsampling_lazysaving()
+        end
+    end
+    cmd = `$bin $beamsize $(Int(is_sharpturn)) $(Int(verbose))
+               $sample_number $read_forest $(Int(is_fasta))`
+    return cmd
+end
+
 function run_cmd(cmd, inputstr; nlines::Int=1, verbose::Bool=false)
     if count(c -> c == '\n', inputstr) + 1 > nlines
         throw(ArgumentError("too many lines detected in input (maybe extra newline chars?)"))
@@ -187,7 +213,7 @@ end # module Private
 
 
 import .Private: cmd_linearfold, cmd_linearpartition,
-    check_constraints, docstr_kwarg_beamsize,
+    cmd_linearsampling, check_constraints, docstr_kwarg_beamsize,
     docstr_kwarg_constraints, docstr_kwarg_is_sharpturn,
     docstr_kwarg_model, docstr_kwarg_verbose, run_cmd,
     parseline_structure_energy, parse_energy, parse_bpseq_format
@@ -435,6 +461,43 @@ function threshknot(seq::AbstractString;
     _, pt = parse_bpseq_format(out)
     dG_ensemble = parse_energy(err)
     return dG_ensemble, pt
+end
+
+"""
+    sample_structures(seq; beamsize, num_samples, is_nonsaving, is_sharpturn, verbose)
+
+Sample secondary structures for RNA sequence `seq` according to their
+Boltzmann probabilities.
+
+Keyword arguments:
+
+$docstr_kwarg_beamsize
+
+- `num_samples`: number of samples to generate. Default is `10`.
+
+- `is_nonsaving`: use non-saving version of algorithm (otherwise
+  lazy-saving is used). Default is `false`.
+
+$docstr_kwarg_is_sharpturn
+$docstr_kwarg_verbose
+"""
+function sample_structures(seq::AbstractString;
+                           beamsize::Int=100,
+                           num_samples::Int=10,
+                           is_nonsaving::Bool=false,
+                           is_sharpturn::Bool=false,
+                           verbose::Bool=false)
+    cmd = cmd_linearsampling(; beamsize, sample_number=num_samples,
+                             is_nonsaving, is_sharpturn, verbose)
+    out, err = run_cmd(cmd, seq; verbose)
+    # skip over output lines depending on verbosity setting
+    if verbose
+        out = join(split(out, '\n')[4:end-3], '\n')
+    else
+        out = join(split(out, '\n')[2:end-1], '\n')
+    end
+    samples = String.(split(out, '\n'))
+    return samples
 end
 
 end # module

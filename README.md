@@ -89,6 +89,14 @@ mea("GGGAAACCC")  # => (-1.62 kcal mol^-1, "(((...)))")
 mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ```
 
+### Sample structures from Boltzmann ensemble
+
+```julia
+# sample_structures(seq; beamsize, num_samples, is_nonsaving, is_sharpturn, verbose)
+sample_structures("GGGAAACCC")  # => [ "((....)).", ... ]
+sample_structures("GGGAAACCC"; num_samples=100)
+```
+
 ### Zuker suboptimal structures
 
 ```julia
