@@ -46,44 +46,52 @@ end
 
 
 @testset "energy" begin
-    for kwargs in gen_kwargs(use_beamsize=false)
-        @test energy("GGGAAACCC", "(((...)))"; kwargs...) isa Unitful.Quantity
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs(use_beamsize=false)
+            @test energy("GGGAAACCC", "(((...)))"; kwargs...) isa Unitful.Quantity
+        end
     end
 end
 
 @testset "mfe" begin
     seq = "GGGAAACCC"
     con = ".?(.??)??"
-    for kwargs in gen_kwargs()
-        dG, structure = mfe(seq; kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(structure) == length(seq)
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            dG, structure = mfe(seq; kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(structure) == length(seq)
 
-        dG, structure = mfe(seq; constraints=con, kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(structure) == length(seq)
+            dG, structure = mfe(seq; constraints=con, kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(structure) == length(seq)
+        end
     end
 end
 
 @testset "zuker_subopt" begin
     seq = "GGGGGGAAAACCCCCAAAGGGGAAAAACCCCCAAAGGGGG"
 
-    for kwargs in gen_kwargs()
-        subopts = zuker_subopt(seq; kwargs...)
-        @test length(subopts) > 0
-        @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            subopts = zuker_subopt(seq; kwargs...)
+            @test length(subopts) > 0
+            @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
 
-        subopts = zuker_subopt(seq; delta=10u"kcal/mol", kwargs...)
-        @test length(subopts) > 0
-        @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
+            subopts = zuker_subopt(seq; delta=10u"kcal/mol", kwargs...)
+            @test length(subopts) > 0
+            @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
+        end
     end
 end
 
 @testset "partfn" begin
     seq = "GGGAAACCC"
-    for kwargs in gen_kwargs()
-        dG = partfn(seq; kwargs...)
-        @test dG isa Unitful.Quantity
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            dG = partfn(seq; kwargs...)
+            @test dG isa Unitful.Quantity
+        end
     end
 end
 
@@ -91,47 +99,53 @@ end
     seq = "GGGAAACCC"
     n = length(seq)
 
-    for kwargs in gen_kwargs()
-        dG, p = bpp(seq; kwargs...)
-        @test dG isa Unitful.Quantity
-        @test eltype(p) <: AbstractFloat
-        @test axes(p) == (1:n, 1:n)
-        @test all(x -> 0.0 <= x <= 1.0, p)
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            dG, p = bpp(seq; kwargs...)
+            @test dG isa Unitful.Quantity
+            @test eltype(p) <: AbstractFloat
+            @test axes(p) == (1:n, 1:n)
+            @test all(x -> 0.0 <= x <= 1.0, p)
 
-        dG, p = bpp(seq; bpp_cutoff=0.2, kwargs...)
-        @test dG isa Unitful.Quantity
-        @test eltype(p) <: AbstractFloat
-        @test axes(p) == (1:n, 1:n)
-        @test all(x -> 0.0 <= x <= 1.0, p)
+            dG, p = bpp(seq; bpp_cutoff=0.2, kwargs...)
+            @test dG isa Unitful.Quantity
+            @test eltype(p) <: AbstractFloat
+            @test axes(p) == (1:n, 1:n)
+            @test all(x -> 0.0 <= x <= 1.0, p)
+        end
     end
 end
 
 @testset "mea" begin
     seq = "GGGAAAACCCC"
 
-    for kwargs in gen_kwargs()
-        dG, structure = mea(seq; kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(structure) == length(seq)
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            dG, structure = mea(seq; kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(structure) == length(seq)
 
-        dG, structure = mea(seq; gamma=2.0, kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(structure) == length(seq)
+            dG, structure = mea(seq; gamma=2.0, kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(structure) == length(seq)
+        end
     end
 end
 
 @testset "threshknot" begin
     seq = "GGGGAAAACCCC"
 
-    for kwargs in gen_kwargs()
-        dG, pt = threshknot(seq; kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(pt) == length(seq)
-        @test eltype(pt) == Int
+    redirect_stdio(stdout=devnull) do
+        for kwargs in gen_kwargs()
+            dG, pt = threshknot(seq; kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(pt) == length(seq)
+            @test eltype(pt) == Int
 
-        dG, pt = threshknot(seq; threshold=0.2, kwargs...)
-        @test dG isa Unitful.Quantity
-        @test length(pt) == length(seq)
-        @test eltype(pt) == Int
+            dG, pt = threshknot(seq; threshold=0.2, kwargs...)
+            @test dG isa Unitful.Quantity
+            @test length(pt) == length(seq)
+            @test eltype(pt) == Int
+        end
     end
 end
