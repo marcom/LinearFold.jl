@@ -1,7 +1,7 @@
 using Test
-using LinearFold: Unitful, @u_str
+using LinearFold: FASTA, Unitful, @u_str
 using LinearFold: bpp, energy, mea, mfe, partfn, sample_structures,
-    threshknot, zuker_subopt
+    threshknot, turbofold, zuker_subopt
 
 function gen_kwargs(; use_beamsize=true)
     function make_nt(model, is_sharpturn, verbose)
@@ -176,6 +176,41 @@ end
             samples = sample_structures(seq; num_samples=nsamples, kwargs...)
             @test length(samples) == nsamples
             @test all(s -> length(s) == length(seq), samples)
+        end
+    end
+end
+
+
+@testset "turbofold" begin
+    for seqs in [
+        ["GGGAAACC", "GCGAAAAAACGCA"],
+        ["GGGAAACC", "GCGAAAAAACGCA", "CCCCUUUUUGGGGG"]]
+        for opts in Iterators.product(
+            [nothing, 50],
+            [nothing, 50],
+            [nothing, 2],
+            [nothing, 4],
+            [nothing, 2],
+            [nothing, 0.2],
+            [nothing, true, false])
+            optnames = [:beamsize_hmm, :beamsize_cky, :iterations,
+                        :threshknot_min_helix_len, :threshknot_iterations, :threshknot_threshold,
+                        :verbose]
+            kwargs = NamedTuple()
+            for (i, name) in enumerate(optnames)
+                val = opts[i]
+                if !isnothing(val)
+                    kwargs = NamedTuple((pairs(kwargs)..., name => val))
+                end
+            end
+            redirect_stdio(stdout=devnull) do
+                msa, pts = turbofold(seqs; kwargs...)
+                @test msa isa Vector{FASTA.Record}
+                @test pts isa Vector{Vector{Int}}
+                @test length(msa) == length(seqs)
+                @test length(pts) == length(seqs)
+                @test length.(pts) == length.(seqs)
+            end
         end
     end
 end

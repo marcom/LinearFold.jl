@@ -97,6 +97,16 @@ sample_structures("GGGAAACCC")  # => [ "((....)).", ... ]
 sample_structures("GGGAAACCC"; num_samples=100)
 ```
 
+### Simultaneous alignment and folding
+
+```julia
+# turbofold(sequences; beamsize_hmm, beamsize_cky, iterations,
+#                      threshknot_min_helix_len,
+#                      threshknot_iterations, threshknot_threshold,
+#                      verbose)
+turbofold(["GGGAAACCC", "GGCCAAAUGGCCA"])
+```
+
 ### Zuker suboptimal structures
 
 ```julia

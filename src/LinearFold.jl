@@ -1,8 +1,9 @@
 module LinearFold
 
-export bpp, energy, mea, mfe, partfn, sample_structures, threshknot, zuker_subopt
+export bpp, energy, mea, mfe, partfn, sample_structures, threshknot, turbofold, zuker_subopt
 using Unitful: Unitful, @u_str, Quantity
 using SparseArrays: spzeros
+using FASTX: FASTA
 
 # Notes
 # - there is no option to set constraints on bpp, mea, partfn,
@@ -16,6 +17,7 @@ using Unitful
 import LinearFold_jll
 import LinearPartition_jll
 import LinearSampling_jll
+import LinearTurboFold_jll
 
 const docstr_kwarg_model =
     """
@@ -133,6 +135,38 @@ function cmd_linearsampling(; beamsize::Int=100,
     return cmd
 end
 
+function run_cmd_linearturbofold(; input_fasta_file::AbstractString,
+                                 output_dir::AbstractString,
+                                 beamsize_hmm::Int=100,
+                                 beamsize_cky::Int=100,
+                                 iterations::Int=3,
+                                 is_save_bpps::Bool=false,
+                                 is_save_pfs::Bool=false,
+                                 threshknot_min_helix_len::Int=3,
+                                 threshknot_iterations::Int=1,
+                                 threshknot_threshold::Float64=0.3,
+                                 verbose::Bool=false)
+    bin = LinearTurboFold_jll.linearturbofold()
+    input_fasta_file = abspath(input_fasta_file)
+    output_dir = abspath(output_dir)
+    cmd = Cmd(`$bin $input_fasta_file $output_dir $beamsize_hmm
+               $beamsize_cky $iterations $(Int(is_save_bpps))
+               $(Int(is_save_pfs)) $(Int(verbose))
+               $threshknot_min_helix_len $threshknot_iterations
+               $threshknot_threshold`;
+              dir=dirname(LinearTurboFold_jll.get_linearturbofold_path()))
+    outbuf = IOBuffer()
+    errbuf = IOBuffer()
+    run(pipeline(cmd; stdin=devnull, stdout=outbuf, stderr=errbuf))
+    out = String(take!(outbuf))
+    err = String(take!(errbuf))
+    if verbose
+        println(out)
+        println(err)
+    end
+    return out, err
+end
+
 function run_cmd(cmd, inputstr; nlines::Int=1, verbose::Bool=false)
     if count(c -> c == '\n', inputstr) + 1 > nlines
         throw(ArgumentError("too many lines detected in input (maybe extra newline chars?)"))
@@ -209,6 +243,52 @@ function parse_bpseq_format(bpseq::AbstractString)
     return join(seq), pt
 end
 
+function parse_ct_format(ctstr::AbstractString)
+    # .ct file format (connectivity table)
+    # - can describe pseudoknots, multiple strands, circular strands,
+    #   and record natural numbering (e.g. numbering from the
+    #   literature that doesn't follow consecutive numbering)
+    # Reference: https://rna.urmc.rochester.edu/Text/File_Formats.html#CT
+    # Format description:
+    # - first line: total_number_of_bases title_of_sequence
+    # - other lines:
+    #   - base_number(index n)
+    #   - base(A,C,G,T,U,X)
+    #   - prev_index(n-1)
+    #   - next_index(n+1)
+    #   - base_pairing_partner_index(0 if unpaired)
+    #   - natural numbering
+    iobuf = IOBuffer(ctstr)
+    firstline = readline(iobuf)
+    a = split(firstline)
+    if length(a) != 2
+        error("Error in first line of ct file, expected two entries, got $(length(a)). Line was: $firstline")
+    end
+    n_str, title = a
+    n = parse(Int, n_str)
+    pt = zeros(Int, n)
+    for line in eachline(iobuf)
+        if isempty(strip(line))
+            continue
+        end
+        a = split(line)
+        # we ignore extra entries at the end, as some programs put comments there
+        if length(a) < 6
+            error("Error: not enough entries (has to be >= 6) in line: $line")
+        end
+        i_str, base_str, iprev_str, inext_str, j_str, natural_idx_str = a[1:6]
+        i = parse(Int, i_str)
+        base = String(base_str)
+        iprev = parse(Int, iprev_str)
+        inext = parse(Int, inext_str)
+        j = parse(Int, j_str)
+        natural_idx = String(natural_idx_str)
+        pt[i] = j
+        # TODO: support multiple strands (iprev, inext), circular strands
+    end
+    return pt
+end
+
 end # module Private
 
 
@@ -216,7 +296,8 @@ import .Private: cmd_linearfold, cmd_linearpartition,
     cmd_linearsampling, check_constraints, docstr_kwarg_beamsize,
     docstr_kwarg_constraints, docstr_kwarg_is_sharpturn,
     docstr_kwarg_model, docstr_kwarg_verbose, run_cmd,
-    parseline_structure_energy, parse_energy, parse_bpseq_format
+    run_cmd_linearturbofold, parseline_structure_energy, parse_energy,
+    parse_bpseq_format, parse_ct_format
 
 """
     energy(seq, structure; model, is_sharpturn, verbose)
@@ -498,6 +579,84 @@ function sample_structures(seq::AbstractString;
     end
     samples = String.(split(out, '\n'))
     return samples
+end
+
+
+
+
+"""
+    turbofold(sequences; beamsize_hmm, beamsize_cky, iterations,
+                         threshknot_min_helix_len,
+                         threshknot_iterations, threshknot_threshold,
+                         verbose)
+
+Simultaneous alignment and folding of RNA sequences `sequences` in
+linear time with the LinearTurboFold algorithm.
+
+- `beamsize_hmm`: beam size for sequence alignment. Default is `100`.
+
+- `beamsize_cky`: beam size for structure prediction. Default is `100`.
+
+- `iterations`: number of iterations to run. Default is `3`.
+
+- `threshknot_min_helix_len`: minimum length of helices in predicted
+  structures in ThreshKnot. Default is `3`.
+
+- `threshknot_iterations`: number of iterations of ThreshKnot. Default
+  is `1`.
+
+- `threshknot_threshold`: threshold value for ThreshKnot. Default is
+  `0.3`.
+
+$docstr_kwarg_verbose
+"""
+function turbofold(sequences::Vector{<:AbstractString}; # or Dict{String,String} with fasta names
+                   beamsize_hmm::Int=100,
+                   beamsize_cky::Int=100,
+                   iterations::Int=3,
+                   #is_save_bpps::Bool=false,
+                   #is_save_pfs::Bool=false,
+                   threshknot_min_helix_len::Int=3,
+                   threshknot_iterations::Int=1,
+                   threshknot_threshold::Float64=0.3,
+                   verbose::Bool=false)
+    # TODO: we don't support these two options currently
+    is_save_bpps = false
+    is_save_pfs = false
+
+    n = length(sequences)
+    fasta_file, io_fasta = mktemp(cleanup=false)
+    output_dir = mktempdir(cleanup=false)
+    for (i,seq) in enumerate(sequences)
+        println(io_fasta, "> $i")
+        println(io_fasta, seq)
+    end
+    close(io_fasta)
+    out, err = run_cmd_linearturbofold(;
+        input_fasta_file=fasta_file, output_dir, beamsize_hmm,
+        beamsize_cky, iterations, is_save_bpps, is_save_pfs,
+        threshknot_min_helix_len, threshknot_iterations,
+        threshknot_threshold, verbose
+    )
+    Base.Filesystem.rm(fasta_file)
+
+    # read output: .ct files for structures, .aln file for multiple
+    # sequence alignment
+    outdir_files = readdir(output_dir)
+    pts = Vector{Int}[]
+    for i = 1:n
+        k = findfirst(s -> occursin(Regex("^$(i)_.*\\.ct"), s), outdir_files)
+        file = outdir_files[k]
+        ct_str = read(joinpath(output_dir, file), String)
+        pt = parse_ct_format(ct_str)
+        push!(pts, pt)
+    end
+    reader = open(FASTA.Reader, joinpath(output_dir, "output.aln"))
+    msa = [r for r in reader]
+    close(reader)
+
+    Base.Filesystem.rm(output_dir; recursive=true)
+    return msa, pts
 end
 
 end # module
