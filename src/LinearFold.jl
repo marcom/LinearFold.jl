@@ -154,7 +154,7 @@ function run_cmd_linearturbofold(; input_fasta_file::AbstractString,
                $(Int(is_save_pfs)) $(Int(verbose))
                $threshknot_min_helix_len $threshknot_iterations
                $threshknot_threshold`;
-              dir=dirname(LinearTurboFold_jll.get_linearturbofold_path()))
+              dir=joinpath(dirname(LinearTurboFold_jll.get_fam_hmm_pars_path()), "..", "..") )
     outbuf = IOBuffer()
     errbuf = IOBuffer()
     run(pipeline(cmd; stdin=devnull, stdout=outbuf, stderr=errbuf))
