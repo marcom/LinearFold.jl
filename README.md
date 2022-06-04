@@ -1,4 +1,4 @@
-# LinearFold.jl
+# Julia interface to LinearFold
 
 Unofficial Julia interface to the
 [LinearFold](https://github.com/LinearFold) suite of programs for RNA
