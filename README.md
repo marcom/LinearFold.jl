@@ -3,12 +3,12 @@
 Unofficial Julia interface to the
 [LinearFold](https://github.com/LinearFold) suite of programs for RNA
 secondary structure prediction. Please cite the applicable original
-LinearFold, LinearPartition, etc. publications if you use this
-library.
+LinearFold, LinearPartition, LinearSampling, or LinearTurboFold
+publications if you use this library.
 
-Only the LinearFold and LinearPartition programs are supported at the
-moment.  This library calls the binary executables of the LinearFold
-programs directly and parses their output.
+The LinearFold, LinearPartition, LinearSampling, and LinearTurboFold
+programs are supported at the moment.  This library calls the binary
+executables of these programs directly and parses their output.
 
 The name LinearFold derives from the `O(n)` running time (where `n` is
 the sequence length) of calculating an approximate solution, compared
@@ -52,7 +52,9 @@ using LinearFold, Unitful
 - `verbose=false`: output extra information from the program runs to
   stdout. Default is `false`.
 
-### Minimum free energy structure of an RNA strand
+### Minimum free energy (MFE) structure of an RNA strand
+
+Uses the LinearFold program to predict the MFE and MFE structure.
 
 ```julia
 # mfe(seq; model, beamsize, constraints, is_sharpturn, verbose)
@@ -63,6 +65,8 @@ mfe("GGGAAACCC"; model=:contrafold)  # => (-0.09 kcal mol^-1, ".........")
 
 ### Base pair probabilities
 
+Uses the LinearPartition program to calculate base pair probabilities.
+
 ```julia
 # bpp(seq; model, beamsize, bpp_cutoff, is_sharpturn, verbose)
 bpp("GGGAAACCC") # => (-1.62 kcal mol^-1, sparse(...))
@@ -70,6 +74,10 @@ bpp("GGGAAACCC"; bpp_cutoff=0.1)
 ```
 
 ### Pseudoknot structure prediction
+
+Uses the LinearPartition program to predict possibly pseudoknotted
+secondary structures with a beam search approximation to the
+ThreshKnot algorithm.
 
 Because the predicted structures can contain pseudoknots, the
 structure is returned as a list of integers which indicate the
@@ -81,7 +89,9 @@ threshknot("GGGAAACCC")  # => (-1.62 kcal mol^-1, [9, 8, 7, 0, 0, 0, 3, 2, 1])
 threshknot("GGGAAACCC"; threshold=0.2)
 ```
 
-### Maximum expected accuracy structure
+### Maximum expected accuracy (MEA) structure
+
+Uses the LinearPartition program.
 
 ```julia
 # mea(seq; model, beamsize, gamma, is_sharpturn, verbose)
@@ -91,6 +101,10 @@ mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 
 ### Sample structures from Boltzmann ensemble
 
+Uses the LinearSampling program to return `num_samples` secondary
+structures sampled according to their Boltzmann probability for an RNA
+sequence.
+
 ```julia
 # sample_structures(seq; beamsize, num_samples, is_nonsaving, is_sharpturn, verbose)
 sample_structures("GGGAAACCC")  # => [ "((....)).", ... ]
@@ -98,6 +112,9 @@ sample_structures("GGGAAACCC"; num_samples=100)
 ```
 
 ### Simultaneous alignment and folding
+
+Uses the LinearTurboFold program to simultaneously align and fold
+multiple RNA sequences.
 
 ```julia
 # turbofold(sequences; beamsize_hmm, beamsize_cky, iterations,
@@ -109,6 +126,8 @@ turbofold(["GGGAAACCC", "GGCCAAAUGGCCA"])
 
 ### Zuker suboptimal structures
 
+Uses the LinearFold program.
+
 ```julia
 # zuker_subopt(seq; model, beamsize, delta, is_sharpturn, verbose)
 zuker_subopt("GCGCGAAAAAACCCCCCC")  # => [ (2.9 kcal mol^-1, "....(........)...."), ... ]
@@ -117,12 +136,16 @@ zuker_subopt("GCGCGAAAAAACCCCCCC"; delta=4.0u"kcal/mol")
 
 ### Energy of a (sequence, structure) pair
 
+Uses the eval mode of the LinearFold program.
+
 ```julia
 # energy(seq, structure; model, is_sharpturn, verbose)
 energy("GGGAAACCC", "(((...)))")  # => -1.2 kcal mol^-1
 ```
 
 ### Partition function only, no base pair probabilities
+
+Uses the LinearPartition program.
 
 ```julia
 # partfn(seq; model, beamsize, is_sharpturn, verbose)
