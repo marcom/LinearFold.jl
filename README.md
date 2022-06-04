@@ -89,16 +89,6 @@ threshknot("GGGAAACCC")  # => (-1.62 kcal mol^-1, [9, 8, 7, 0, 0, 0, 3, 2, 1])
 threshknot("GGGAAACCC"; threshold=0.2)
 ```
 
-### Maximum expected accuracy (MEA) structure
-
-Uses the LinearPartition program.
-
-```julia
-# mea(seq; model, beamsize, gamma, is_sharpturn, verbose)
-mea("GGGAAACCC")  # => (-1.62 kcal mol^-1, "(((...)))")
-mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
-```
-
 ### Sample structures from Boltzmann ensemble
 
 Uses the LinearSampling program to return `num_samples` secondary
@@ -122,6 +112,16 @@ multiple RNA sequences.
 #                      threshknot_iterations, threshknot_threshold,
 #                      verbose)
 turbofold(["GGGAAACCC", "GGCCAAAUGGCCA"])
+```
+
+### Maximum expected accuracy (MEA) structure
+
+Uses the LinearPartition program.
+
+```julia
+# mea(seq; model, beamsize, gamma, is_sharpturn, verbose)
+mea("GGGAAACCC")  # => (-1.62 kcal mol^-1, "(((...)))")
+mea("GGGAAACCC"; gamma=0.5)  # => (-1.62 kcal mol^-1, ".(.....).")
 ```
 
 ### Zuker suboptimal structures
