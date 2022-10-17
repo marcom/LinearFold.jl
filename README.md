@@ -151,3 +151,9 @@ Uses the LinearPartition program.
 # partfn(seq; model, beamsize, is_sharpturn, verbose)
 partfn("GGGAAACCC")  # => -1.62 kcal mol^-1
 ```
+
+## Related Julia packages
+
+- [ViennaRNA.jl](https://github.com/marcom/ViennaRNA.jl)
+- [RNAstructure.jl](https://github.com/marcom/RNAstructure.jl)
+- [PlotRNA.jl](https://github.com/marcom/PlotRNA.jl)
