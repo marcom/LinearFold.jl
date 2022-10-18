@@ -583,9 +583,6 @@ function sample_structures(seq::AbstractString;
     return samples
 end
 
-
-
-
 """
     turbofold(sequences; beamsize_hmm, beamsize_cky, iterations,
                          threshknot_min_helix_len,
