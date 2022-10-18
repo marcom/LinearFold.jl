@@ -130,8 +130,10 @@ function cmd_linearsampling(; beamsize::Int=100,
             bin = LinearSampling_jll.linearsampling_lazysaving()
         end
     end
+    input_file = ""
+    shape_file_path = ""
     cmd = `$bin $beamsize $(Int(is_sharpturn)) $(Int(verbose))
-               $sample_number $read_forest $(Int(is_fasta))`
+               $sample_number $read_forest $(Int(is_fasta)) $input_file $shape_file_path`
     return cmd
 end
 
