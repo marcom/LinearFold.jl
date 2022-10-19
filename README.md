@@ -14,16 +14,15 @@ The name LinearFold derives from the `O(n)` running time (where `n` is
 the sequence length) of calculating an approximate solution, compared
 to the typical cubic `O(n^3)` running time for the exact solution.
 This speedup is achieved by recasting the normal dynamic programming
-algorithms to work on the sequence left-to-right and to use a beam
-search approximation.  Please refer to the LinearFold publications for
-further details.
+algorithms to work on the sequence left-to-right and by using a beam
+search approximation.  Most algorithms also have a linear or quadratic
+time dependence on the beam size used.  Please refer to the LinearFold
+publications for further details.
 
 ## Installation
 
-This package is not yet registered, so you have to install it with:
-
 ```
-] add https://github.com/marcom/LinearFold.jl
+] add LinearFold
 ```
 
 ## Usage
