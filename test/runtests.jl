@@ -75,13 +75,16 @@ end
 
     redirect_stdio(stdout=devnull) do
         for kwargs in gen_kwargs()
+            n = length(seq)
             subopts = zuker_subopt(seq; kwargs...)
             @test length(subopts) > 0
             @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
+            @test all(x -> length(x[2]) == n, subopts)
 
             subopts = zuker_subopt(seq; delta=10u"kcal/mol", kwargs...)
             @test length(subopts) > 0
             @test subopts isa Vector{Tuple{typeof(1.0u"kcal/mol"),String}}
+            @test all(x -> length(x[2]) == n, subopts)
         end
     end
 end
@@ -135,6 +138,7 @@ end
 
 @testset "threshknot" begin
     seq = "GGGGAAAACCCC"
+    n = length(seq)
 
     redirect_stdio(stdout=devnull) do
         for kwargs in gen_kwargs()
@@ -142,11 +146,13 @@ end
             @test dG isa Unitful.Quantity
             @test length(pt) == length(seq)
             @test eltype(pt) == Int
+            @test all(i -> 0 <= i <= n, pt)
 
             dG, pt = threshknot(seq; threshold=0.2, kwargs...)
             @test dG isa Unitful.Quantity
             @test length(pt) == length(seq)
             @test eltype(pt) == Int
+            @test all(i -> 0 <= i <= n, pt)
         end
     end
 end
@@ -169,13 +175,14 @@ end
             end
         end
         redirect_stdio(stdout=devnull) do
+            n = length(seq)
             samples = sample_structures(seq; kwargs...)
             @test length(samples) == 10
-            @test all(s -> length(s) == length(seq), samples)
+            @test all(s -> length(s) == n, samples)
 
             samples = sample_structures(seq; num_samples=nsamples, kwargs...)
             @test length(samples) == nsamples
-            @test all(s -> length(s) == length(seq), samples)
+            @test all(s -> length(s) == n, samples)
         end
     end
 end

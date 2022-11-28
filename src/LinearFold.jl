@@ -506,7 +506,7 @@ function mea(seq::AbstractString;
     cmd = cmd_linearpartition(; model, verbose, beamsize,
                               is_sharpturn, mea=true, gamma)
     out, err = run_cmd(cmd, seq; verbose)
-    structure = String(split(out, '\n')[2])
+    structure = String(strip(split(out, '\n')[2]))
     dG_ensemble = parse_energy(err)
     return dG_ensemble, structure
 end
