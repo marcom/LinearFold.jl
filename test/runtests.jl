@@ -3,6 +3,10 @@ using LinearFold: FASTA, Unitful, @u_str
 using LinearFold: bpp, energy, mea, mfe, partfn, sample_structures,
     threshknot, turbofold, zuker_subopt
 
+# show which testset is currently running
+showtestset() = println(" "^(2 * Test.get_testset_depth()), "testing ",
+                        Test.get_testset().description)
+
 function gen_kwargs(; use_beamsize=true)
     function make_nt(model, is_sharpturn, verbose)
         nt = NamedTuple()
@@ -46,9 +50,11 @@ function gen_kwargs(; use_beamsize=true)
 end
 
 
-@testset verbose=true "LinearFold tests" begin
+@testset verbose=true "LinearFold" begin
+    showtestset()
 
     @testset "energy" begin
+        showtestset()
         redirect_stdio(stdout=devnull) do
             for kwargs in gen_kwargs(use_beamsize=false)
                 @test energy("GGGAAACCC", "(((...)))"; kwargs...) isa Unitful.Quantity
@@ -57,6 +63,7 @@ end
     end
 
     @testset "mfe" begin
+        showtestset()
         seq = "GGGAAACCC"
         con = ".?(.??)??"
         redirect_stdio(stdout=devnull) do
@@ -73,6 +80,7 @@ end
     end
 
     @testset "zuker_subopt" begin
+        showtestset()
         seq = "GGGGGGAAAACCCCCAAAGGGGAAAAACCCCCAAAGGGGG"
 
         redirect_stdio(stdout=devnull) do
@@ -92,6 +100,7 @@ end
     end
 
     @testset "partfn" begin
+        showtestset()
         seq = "GGGAAACCC"
         redirect_stdio(stdout=devnull) do
             for kwargs in gen_kwargs()
@@ -102,6 +111,7 @@ end
     end
 
     @testset "bpp" begin
+        showtestset()
         seq = "GGGAAACCC"
         n = length(seq)
 
@@ -123,6 +133,7 @@ end
     end
 
     @testset "mea" begin
+        showtestset()
         seq = "GGGAAAACCCC"
 
         redirect_stdio(stdout=devnull) do
@@ -139,6 +150,7 @@ end
     end
 
     @testset "threshknot" begin
+        showtestset()
         seq = "GGGGAAAACCCC"
         n = length(seq)
 
@@ -160,6 +172,7 @@ end
     end
 
     @testset "sample_structures" begin
+        showtestset()
         seq = "GGGAAACC"
         nsamples = 20
 
@@ -190,6 +203,7 @@ end
     end
 
     @testset "turbofold" begin
+        showtestset()
         for seqs in [
             ["GGGAAACC", "GCGAAAAAACGCA"],
             ["GGGAAACC", "GCGAAAAAACGCA", "CCCCUUUUUGGGGG"]]
