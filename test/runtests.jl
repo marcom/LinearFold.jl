@@ -173,7 +173,7 @@ end
 
     @testset "sample_structures" begin
         showtestset()
-        seq = "GGGAAACC"
+        seq = "GGGAAACCC"
         nsamples = 20
 
         for opts in Iterators.product(

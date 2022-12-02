@@ -49,6 +49,8 @@ const docstr_kwarg_constraints =
       parentheses.
     """
 
+splitlines(str) = readlines(IOBuffer(str))
+
 function cmd_linearfold(; model::Symbol=:vienna,
                         verbose::Bool=false,
                         beamsize::Int=100,
@@ -193,7 +195,7 @@ end
 
 function parse_energy(str)
     s = split(str, ':')[2]
-    s = split(s, '\n')[1]
+    s = splitlines(s)[1]
     s = lstrip(s)
     s = split(s, ' ')[1]
     dG = parse(Float64, s) * u"kcal/mol"
@@ -299,7 +301,7 @@ import .Private: cmd_linearfold, cmd_linearpartition,
     docstr_kwarg_constraints, docstr_kwarg_is_sharpturn,
     docstr_kwarg_model, docstr_kwarg_verbose, run_cmd,
     run_cmd_linearturbofold, parseline_structure_energy, parse_energy,
-    parse_bpseq_format, parse_ct_format
+    parse_bpseq_format, parse_ct_format, splitlines
 
 """
     energy(seq, structure; model, is_sharpturn, verbose)
@@ -320,7 +322,7 @@ function energy(seq::AbstractString, structure::AbstractString;
     is_eval = true
     cmd = cmd_linearfold(; model, verbose, is_sharpturn, is_eval)
     out, err = run_cmd(cmd, "$seq\n$structure"; nlines=2, verbose)
-    line = split(out, '\n')[end-1]
+    line = splitlines(out)[end]
     _, en = parseline_structure_energy(line)
     return en
 end
@@ -358,7 +360,7 @@ function mfe(seq::AbstractString;
     cmd = cmd_linearfold(; model, beamsize, is_sharpturn, verbose,
 			 is_constraints)
     out, err = run_cmd(cmd, input; nlines, verbose)
-    line = split(out, '\n')[end-1]
+    line = splitlines(out)[end]
     structure, en = parseline_structure_energy(line)
     return en, structure
 end
@@ -506,7 +508,7 @@ function mea(seq::AbstractString;
     cmd = cmd_linearpartition(; model, verbose, beamsize,
                               is_sharpturn, mea=true, gamma)
     out, err = run_cmd(cmd, seq; verbose)
-    structure = String(strip(split(out, '\n')[2]))
+    structure = String(splitlines(out)[2])
     dG_ensemble = parse_energy(err)
     return dG_ensemble, structure
 end
@@ -539,7 +541,7 @@ function threshknot(seq::AbstractString;
     out, err = run_cmd(cmd, seq; verbose)
     if verbose
         # skip over first line of output in verbose mode
-        out = join(split(out, '\n')[2:end], '\n')
+        out = join(splitlines(out)[2:end], '\n')
     end
     _, pt = parse_bpseq_format(out)
     dG_ensemble = parse_energy(err)
@@ -573,13 +575,11 @@ function sample_structures(seq::AbstractString;
     cmd = cmd_linearsampling(; beamsize, sample_number=num_samples,
                              is_nonsaving, is_sharpturn, verbose)
     out, err = run_cmd(cmd, seq; verbose)
+    lines = splitlines(out)
+    nlines = length(lines)
     # skip over output lines depending on verbosity setting
-    if verbose
-        out = join(split(out, '\n')[4:end-3], '\n')
-    else
-        out = join(split(out, '\n')[2:end-1], '\n')
-    end
-    samples = String.(split(out, '\n'))
+    idx_range = verbose ? (4:nlines-2) : (2:nlines)
+    samples = String.(@view lines[idx_range])
     return samples
 end
 
