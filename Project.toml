@@ -1,7 +1,7 @@
 name = "LinearFold"
 uuid = "aebc047d-cbe2-4ea1-a181-a2987ad69fed"
 authors = ["Marco Matthies <marco.matthies@gmail.com>"]
-version = "0.2.3"
+version = "0.3.0"
 
 [deps]
 FASTX = "c2308a5c-f048-11e8-3e8a-31650f418d12"
