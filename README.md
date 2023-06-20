@@ -1,5 +1,7 @@
 # Julia interface to LinearFold
 
+[![Build Status](https://github.com/marcom/LinearFold.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/marcom/LinearFold.jl/actions/workflows/CI.yml?query=branch%3Amain)
+
 Unofficial Julia interface to the
 [LinearFold](https://github.com/LinearFold) suite of programs for RNA
 secondary structure prediction. Please cite the applicable original
