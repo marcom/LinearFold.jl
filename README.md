@@ -1,6 +1,7 @@
 # Julia interface to LinearFold
 
 [![Build Status](https://github.com/marcom/LinearFold.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/marcom/LinearFold.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 Unofficial Julia interface to the
 [LinearFold](https://github.com/LinearFold) suite of programs for RNA

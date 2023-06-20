@@ -52,6 +52,7 @@ end
 
 @testset verbose=true "LinearFold" begin
     showtestset()
+    include("aqua.jl")
 
     @testset "energy" begin
         showtestset()
